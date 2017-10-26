@@ -1,0 +1,282 @@
+APSS - AllPairs Similarity Search
+
+This program implements several methods for solving the AllPairs Similarity Search problem for cosine similarity and Tanimoto coefficient, including AllPairs [3],  MMJoin [4], MK-Join[5-7], IdxJoin [1], L2AP [1] and TAPNN[2]. Details for the methods can be found in [1] and [2].
+
+Dependencies:
+----------
+
+There is also a soft dependency on Perl (one line in the Makefile). If you do not have Perl installed please edit the Makefile and replace the line that starts with "CDEFINES := " with some equivalent code in the scripting language of your choice. The line makes uppercase and prepends "-D" to each element in a space delimited list of pruning parameters passed through the option "CDEFS".
+
+Additionally, APSS uses a number of memory allocation and file handling routines from GKlib, a library by George Karypis included with the METIS software. A compatible version of this library is included in build/GKlib.tgz, compressed with tar gunzip. If you do not already have GKlib installed, unzip the directory, cd to it, and read BUILD.txt for installation instructions. GKlib requires CMake 2.8 to build.
+
+Compilation:
+----------
+
+To install with default settings, use "make". The result should be an executable named "apss". Invoke "make clean" to remove compiled code and the executable. You may need to edit the Makefile to set library directories or other options.
+
+The L2AP, TAPNN, and MK-Join methods allow choosing pruning settings at compile time, through a parameter named CDEFS (C definitions). This parameter simply takes a list of options, e.g. "rs4 l2cg", and transforms it into define statements passed as options to the compiler, "-DRS4 -DL2CG". Pruning settings for cosine are discussed in detail in [1]. Following are the availability settings for each stage of the algorithm (left of colon), and their equivalent form in the paper (right of colon).
+
+    Index construction
+    ----------
+    - nothing : b_1 ( b_1 is assumed/default )
+    - lenps : min(b_1, b_2)
+    - l2ps : min(b_1, b_3)
+    
+    Candidate generation:
+    ----------
+    - sz1, sz3 : sz_1, sz_3
+    - rs1, rs2, rs3, rs4 - rs_1, rs_2, rs_3, rs_4
+    - both rs1 and rs2 - min(rs_1, rs_2)
+    - both rs1 and rs4 - min(rs_1, rs_4)
+    - both rs3 and rs4 - min(rs_3, rs_4)
+    - l2cg : l2cg
+    
+    Candidate verification:
+    ----------
+    - pscv : ps
+    - dp1, dp2, ..., dp8 - dp_1, dp_2, ..., dp_8 (combinations possible as well, as defined in the paper)
+    - l2cv : l2cv
+    
+TAPNN makes use of the following pruning choices, which are enabled by default: tl1 (test candidate vector length in CV for Tanimoto with dotp upper bound based on PS bound), tl2 (test candidate vector length in CV for Tanimoto with dotp upper bound based on prefix l2-norm at first common feature), and trs (Tanimoto based remaining score test in CG). See [2] for details. MK-Join makes use of the following pruning choice, which is enabled by default: mkpl (prune based on candidate vector lengths in addition to the query vector prefix).
+
+If no pruning choices are given, the default pruning used is "L2PS RS4 L2CG PSCV DP5 L2CV TL1 TL2 MKPL", as defined in the Makefile.
+
+
+General Usage and Options:
+----------
+
+Invoke apss with -h or --help to see the following usage information:
+
+ 
+Usage: apss [options] mode input-file [output-file]
+ 
+ mode:
+  ij      IdxJoin - Full sparse dot-product with lesser id docs.
+  ap      AllPairs (Cosine only)
+  mmj     MMJoin
+  mkj     MK-Join (Tanimoto only)
+  mkj2    MK-Join with tighter bounds from ACIIDS 2014 paper
+  l2ap    L2-Norm AllPairs (L2AP)
+  tapnn   Tanimoto extension of L2AP
+  l2ap-c, tapnn-c  L2AP for Tanimoto using only Cosine pruning on same threshold
+  l2ap-m, tapnn-m  L2AP for Tanimoto using MMJoin Tanimoto threshold
+ 
+ utility modes:
+  info    Get information about the sparse matrix in input-file (output-file ignored).
+  testeq  Test whether matrix in input-file is the same as that in output-file.
+          Differences will be printed out to stdout.
+  io      Transform sparse matrix in input file and write to output-file in
+          specified format. Scale and Norm parameters can also be invoked.
+ 
+ <input-file> should be in CSR, CLUTO, IJV, AllPairs binary, or binary CSR format.
+ If no <output-file> is given, output will be printed to stdout. In this case, -fmtWrite 
+ must be either IJV (default) or non-binary if -nim is invoked.
+ 
+ Input is assumed to have unit-length rows for Cosine APSS. Otherwise, use the -norm and
+ optionally the -scale parameters to pre-process your input before similarity search.
+ 
+ Options
+  -t=float
+     Specifies the similarity threshold used for the search. Should be in (0,1].
+     Default value is 0.5.
+ 
+  -sim=string
+     Which similarity function to use (cos or tan).
+     Default value is cos.
+ 
+  -nim
+     Store neighbors in memory. For some matrices this may produce faster results,
+     but may require memory many times the input size. See README file for details.
+ 
+  -scale
+     Scale the input data by IDF.
+ 
+  -norm=int
+     Normalize the matrix rows using the l1 (norm=1) or l2 (norm=2) norm.
+ 
+  -pr,-pc
+     Prune rows/cols from the input matrix that are too short/long.
+ 
+  -prmin=int,-prmax=int,-pcmin=int,-pcmax=int
+     Minimum/maximum row/column length (nnzs) when pruning (only used with -pr/-pc).
+ 
+  -fmtRead=string
+     What format is the dataset stored in: clu, csr, met, ijv, binr, binc, bijv, sbin.
+     See README for format definitions.
+     Default value is 0 (detect from extension).
+ 
+  -readZidx
+     Column ids start with 0 instead of 1. Pertains to clu, csr, met, and ijv formats only.
+ 
+  -readVals=int
+     Read values from file. Pertains to io mode and clu, csr, met, and ijv formats only.
+     Default value is 1.
+ 
+  -fmtWrite=string
+     What format should the output file be written in. See -fmtRead for values.
+     Default value is ijv.
+ 
+  -writeZidx
+     Column ids start with 0 instead of 1. Pertains to clu, csr, met, and ijv formats only.
+ 
+  -writeVals=int
+     Write values to file. Pertains to io mode and clu, csr, met, and ijv formats only.
+     Default value is 1.
+ 
+  -compactCols, -compactRows
+     Remove empty cols/rows from the matrix.
+ 
+  -seed=int
+     Seed for the random number generator.
+     Default value is time(NULL).
+ 
+  -fldelta=int
+     Float delta used when testing equality of real numbers. (testeq mode only)
+     Default value is 1e-4.
+ 
+  -verb=int
+     Specifies the level of debugging information to be displayed:
+         0 = NONE, 1 = INFO
+     Default value is 0 (NONE).
+ 
+  -v
+     Prints version information.
+ 
+  -help, -h
+     Prints this message.
+
+
+All parameters are optional other than mode and input-file. Mode defines which algorithm will be used for the similarity search. Other parameters can be specified in any order, either before or after the mode and files, as desired. Use the -fmtRead parameter to specify input-file format unless it has a clearly defined format extension, e.g. ".csr". Otherwise, the program will assume the input is in either csr or cluto format and will attempt to identify which one. 
+
+By default, APSS caches neighbors and writes them to a file. The cache size can be adjusted through the NSIMSBUFFER parameter in defs.h. If the output file is not defined, output is written to stdout and execution information is not printed. If an output file name is defined and its extension is not ".ijv", the suffix ".ijv" will be appended to it. Alternatively, when invoking the -nim parameter, the program can keep all found neighbors in memory and write them out to a file (or stdout) at the end of the search. This mode may result in faster execution but requires a lot more memory. Initially, memory is allocated for 10 neighbors for each input row (NINITNEIGHBORS parameter in defs.h), and the structure grows by half its current size each time it becomes full. When invoking -nim, the output file can be any supported format (e.g. clu, sbin). The output format can be specified through the output file extension or the -fmtWrite parameter. If the output file is not defined, -fmtWrite must be a non-binary format.
+
+
+Input and output formats:
+----------
+
+APSS only accepts weighted data as input. While binary (non-weighted, without stored values) versions exist of the following formats, they cannot be used in APSS similarity search.
+
+CSR (.csr), Cluto (.clu), Triplet CSR (.ijv), and Metis (.met) formats represent a sparse matrix row-wise in ASCII files, as <column-id, value> pairs. Only the non-zero entries of the matrix are stored. A matrix row without any values should still exist in the file as an empty row. Column-ids are start with 1. The Cluto and Metis formats contain an additional header row with metadata information. The Cluto metadata includes three integers, the number of rows (n), the number of columns (m), and the number of non-zero values (nnz). Metis metadata also includes three integers, the first is n, the second is nnz, and the third is simply 1, indicating the file contains values. The Triplet CSR format has nnz lines containing (i,j,val) triplets in the format "%d %d %f\n".
+
+Note that some output formats do not store matrix size (e.g. CSR, IJV). A direct comparison of neighbor matrices in different formats may report that matrix sizes differ if one format stores size and the other does not (e.g. if comparing APSS output matrices and no row has the last row as its neighbor). If using the "testeq" mode for testing matrix equality, you may see output such as, "Matrix stats differ: A[9846,9846,494932] != B[10000,9846,494932]". Ignore this output and focus on the "Differences" reported below this line. Alternatively, ensure neighborhood matrices are written in the same format before comparing.
+
+Datasets stored in binary formats take up less space and usually load faster during execution. APSS accepts binary versions of the CSR format (.binr, .binc, .bijv), as well as the binary format used in Venu Satuluri's BayesLSH [8] package (.sbin), which is the same format as in Roberto J. Bayardo's implementation of AllPairs [3].
+
+   Binary CSR
+   ----------
+   The binary row-wise CSR (.binr) format stores two 4-byte integers (n, and nnz), followed by 3 arrays. The first is a 4-byte integer pointer array (ptr) of length n+1 containing pointers into the next two arrays, the indicators (ind) and values (val) arrays. These pointers specify where each row starts, s.t. row i's values are stored in the val array starting at index ptr[i] and ending at index ptr[i+1]. The indicators array stores column ids associated with those values. These column ids can similarly be found in the ind array between index ptr[i] and index ptr[i+1]. Needless to say, ptr[0] = 0 and ptr[n] = nnz. The ind array is a 4-byte integer array of length nnz, and the val array is a 4-byte float array of length nnz.
+   The binary column-wise CSR (.binc) is identical in strucure to the binary row-wise CSR format, except it stores the matrix column-wise. The first integer is m, the number of columns, and the ind array stores row ids associated with a particular value in some column j.
+   The binary triplet CSR (.bijv) format stores four 4-byte integers (n, m, nnz, writevals). Writevals is 1 if values are included and 0 otherwise. If values exist, the file then contains nnz (i,j,val) triplets written as binary (int,int,float). Otherwise, it contains nnz (i,j) pairs written as binary (int,int).
+   
+   Venu Satuluri's binary format:
+   ----------
+   The (.sbin) format first stores n as a 4-byte integer, followed by a list of records stored as: "<record length> <columnID 1> <columnID 2> .. <columnID n> <weight 1> <weight 2> .. <weight n>". Column IDs start with 1 and are stored as 4-byte integers. Weights are stored as 4-byte floats.
+   
+All binary formats assume little-endian encoding.
+
+
+Output discrepancy between modes:
+----------
+
+The output of different methods/modes, given the same similarity function and threshold, may be slightly different. This is generally due to round-off error when computing vector dot-products. Different methods may accumulate the dot-products in a different feature processing order, causing slightly different results. In that case, some of the object pairs with similarity t or slightly above t for the first method may not be included in the output of the other, and vice-versa.
+
+
+Example invocations:
+----------
+
+For all examples, ensure appropriate paths for the program and/or datasets. Note that the Tanimoto extension of L2AP, TAPNN, can be invoked with either mode l2ap or tapnn. The similarity function should still be specified, via -sim tan.
+
+Solve the APSS problem using the AllPairs algorithm for the datset in example.clu, stored in the Cluto format, and a Cosine similarity threshold of 0.75. Store the resulting similarity matrix as IJV format in the file output.ijv.
+   apss -t 0.75 -sim cos ap example.clu output 
+
+Use the MMJoin algorithm for similarity threshold 0.6. 
+   apss -t 0.6 -sim cos mmj example.clu output
+   
+Repeat the execution for Tanimoto similarity.
+   apss -t 0.6 -sim tan mmj example.clu output
+
+Use the IdxJoin algorithm for the binary-encoded dataset in example.sbin and the default similarity threshold of 0.5. Print output to stdout in IJV format.
+   apss -sim cos ij example.sbin
+
+Repeat the execution for Tanimoto similarity.
+   apss -sim tan ij example.sbin
+
+Use L2AP for similarity search for similarity threshold 0.7. Store neighbors in memory while searching. Print output to stdout in CLUTO format.
+   apss l2ap example.sbin -t 0.7 -nim -fmtWrite clu -sim cos 
+
+Repeat the execution for Tanimoto similarity.
+   apss tapnn example.sbin -t 0.7 -nim -fmtWrite clu -sim tan 
+   or
+   apss l2ap example.sbin -t 0.7 -nim -fmtWrite clu -sim tan
+
+Use L2AP for near-duplicate object detection.
+   apss l2ap example.sbin output -t 0.99 -sim cos 
+   
+Change the format of the sparse matrix example.sbin to IJV
+   apss io example.sbin example.ijv
+   
+Change the format of the sparse matrix example.sbin to BIJV with an alternate extension.
+   apss io example.sbin example.bmat -fmtWrite bijv
+   
+Test that two matrices contain the same values.
+   apss l2ap example.sbin output.ijv -t 0.7
+   apss l2ap example.sbin neighbors.sbin -t 0.7 -nim
+   apss testeq output.ijv neighbors.sbin
+   
+Get information about a sparse matrix.
+   apss info neighbors.sbin
+
+References
+----------
+
+[1] David C. Anastasiu and George Karypis. L2AP: Fast Cosine Similarity Search With Prefix L-2 Norm Bounds. Proceedings of the 30th IEEE International Conference on Data Engineering (ICDE 2014).
+[2] David C. Anastasiu and George Karypis. Efficient Identification of Tanimoto Nearest Neighbors. Proceedings of the 3rd IEEE International Conference on Data Science and Advanced Analytics (DSAA 2016).
+[3] Roberto J. Bayardo, Yiming Ma, and Ramakrishnan Srikant. 2007. Scaling up all pairs similarity search. In Proceedings of the 16th international conference on World Wide Web (WWW '07). ACM, New York, NY, USA, 131-140.
+[4] Dongjoo Lee, Jaehui Park, Junho Shim, and Sang-goo Lee. 2010. An efficient similarity join algorithm with cosine similarity predicate. In Proceedings of the 21st international conference on Database and expert systems applications: Part II (DEXA'10), Pablo Garcia Bringas, Abdelkader Hameurlain, and Gerald Quirchmayr (Eds.). Springer-Verlag, Berlin, Heidelberg, 422-436
+[5] M. Kryszkiewicz. Bounds on lengths of real valued vectors similar with regard to the tanimoto similarity. Intelligent Information and Database Systems, ser. Lecture Notes in Computer Science, A. Selamat, N. Nguyen, and H. Haron, Eds. Springer Berlin Heidelberg, 2013, vol. 7802, pp. 445-454.
+[6] ----. Using non-zero dimensions for the cosine and tanimoto similarity search among real valued vectors. Fundamenta Informaticae, vol. 127, no. 1-4, pp. 307-323, 2013.
+[7] ----. Using non-zero dimensions and lengths of vectors for the tanimoto similarity search among real valued vectors. Intelligent Information and Database Systems. Springer International Publishing, 2014, pp. 173-182.
+[8] Venu Satuluri and Srinivasan Parthasarathy. 2012. Bayesian locality sensitive hashing for fast similarity search. Proc. VLDB Endow. 5, 5 (January 2012), 430-441.
+
+Acknowledgments:
+----------
+
+Our AllPairs code is heavily influenced by Venu Satuluri's [8] implementation in the BayesLSH package, which can be found at http://www.cse.ohio-state.edu/~satuluri/research.html. Many CSR utility functions are ported from GKlib.
+
+
+Citation:
+----------
+
+Please cite the following paper(s) if you make use of this program or any of its components in your research. 
+For Cosine APSS (L2AP), please cite:
+
+David C. Anastasiu and George Karypis. L2AP: Fast Cosine Similarity Search With Prefix L-2 Norm Bounds. Proceedings of the 30th IEEE International Conference on Data Engineering (ICDE 2014).
+
+@inproceedings{anastasiu2014,
+    author = {Anastasiu, David C. and Karypis, George},
+    title = {L2AP: Fast Cosine Similarity Search With Prefix L-2 Norm Bounds},
+    booktitle = {30th IEEE International Conference on Data Engineering},
+    series = {ICDE '14},
+    year = {2014},
+    location = {Chicago, IL, USA},
+    numpages = {12},
+}
+
+For Tanimoto APSS (TAPNN), please cite:
+
+David C. Anastasiu and George Karypis. Efficient Identification of Tanimoto Nearest Neighbors. Proceedings of the 3rd IEEE International Conference on Data Science and Advanced Analytics (DSAA 2016).
+
+@inproceedings{anastasiu2016,
+    author = {Anastasiu, David C. and Karypis, George},
+    title = {Efficient Identification of Tanimoto Nearest Neighbors},
+    booktitle = {3rd IEEE International Conference on Data Science and Advanced Analytics},
+    series = {DSAA '16},
+    year = {2016},
+    location = {Montr\'{e}al, Canada},
+    numpages = {10},
+}
+
+Copyright Notice and Usage Terms:
+----------
+
+See the file named LICENSE.
