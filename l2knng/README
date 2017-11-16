@@ -1,0 +1,256 @@
+knng - Compute the exact or approximate Cosine K-Nearest Neighbor graph for a set of sparse vectors. 
+
+This program implements several methods for solving the cosine similarity based K-Nearest Neighbor Graph construction problem, including Greedy Filtering [5], Maxscore [4], BMM [4], kIdxJoin [1], kL2AP [1], L2Knng [1], and L2KnngApprox [1]. Details for the methods can be found in [1].
+
+Dependencies:
+----------
+
+The program was written to run on Linux. While it has only been tested on Ubuntu, compiled with GCC 4.7, it likely works with any Linux variant. Its only hard dependency is libm. 
+
+Compilation:
+----------
+
+Change directory to the build subdirectory and execute "make". The result should be an executable named "knng". Invoke "make clean" to remove compiled code and the executable. 
+
+General Usage and Options:
+----------
+
+Invoke knng with -h or --help to see the following usage information:
+ 
+ 
+Usage: knng [options] mode input-file [output-file]
+ 
+ mode:
+  kij     Build graph using IdxJoin (full sparse dot-product with lesser id docs)
+  pkij    A multi-threaded version of kij.
+  kl2ap   Build graph using L2AP (AllPairs Similarity Search with L2-Norm based pruning)
+  msc     Maxscore Information Retrieval solution
+  bmm     Block-Max Maxscore with variable block size
+  bmmc    Block-Max Maxscore with variable block size and compression
+  gf      Greedy Filtering approximate solution
+  l2knn   Efficient K-Nearest Neighbor Graph using L2-Norm pruning bounds
+  l2knn-a Approximate l2knn solution
+ 
+ utility modes:
+  info    Get information about the sparse matrix in input-file (output-file ignored).
+  testeq  Test whether matrix in input-file is the same as that in output-file.
+          Differences will be printed out to stdout.
+  io      Transform sparse matrix in input file and write to output-file in
+          specified format. Scale and Norm parameters can also be invoked.
+  recall  Compute recall of a knng solution given true values.
+ 
+ <input-file> should be in CSR, CLUTO, IJV, AllPairs binary, or binary CSR format.
+ Specify stdout for the <output-file> to print results to stdout. In this case, -fmtWrite 
+ must be either IJV (default) or non-binary if -nim is invoked. If no <output-file> is
+ specified, the output will not be saved. K-NNG output will always be sparse vectors, 
+ sorted in decreasing similarity order.
+ 
+ Input is assumed to have unit-length rows when computing cosine similarity. Otherwise, use
+ the -norm and optionally the -scale parameters to pre-process input before similarity search.
+ 
+ Options
+  -k=int
+     Number of neighbors to return for each row in the K-Nearest Neighbor Graph.
+     Default value is 10.
+ 
+  -alpha=float
+     Number of neighbors to consider initially, as a multiple of k.
+     Default value is 2, i.e. will consider 2*k. Must be non-negative.
+ 
+  -mu=float
+     Number of neighbors to consider initially. If set, alpha = mu/k.
+     Default value is alpha*k. Must be >= k.
+ 
+  -enh=int
+     Number of iterations for the neighborhood enhancing algo.
+     Default value is 10.
+ 
+  -step=float
+     Step size to decrease simT by for kl2ap mode.
+     Default value is 0.1. Must be in (0,1].
+ 
+  -nbl=int
+     Number of blocks to split the K-Nearest Neighbor Graph processing in mode l2knn.
+     Default value is 1 (no splitting).
+ 
+  -v=string
+     Verification file containing a true K-Nearest Neighbor Graph. Must be in CSR format.
+     Default value is NULL (no verification).
+ 
+  -permcols=string
+     How to permute columns before computing knng (for kij and pkij modes): none, l2ap, or l2knn.
+     Default: none.
+ 
+  -cr
+     Use checkpoint-restart for methods that have the technology enabled.
+ 
+  -scale
+     Scale the input data by IDF.
+ 
+  -norm=int
+     Normalize the matrix rows using the l1 (norm=1) or l2 (norm=2) norm.
+ 
+  -pr,-pc
+     Prune rows/cols from the input matrix that are too short/long.
+ 
+  -prmin=int,-prmax=int,-pcmin=int,-pcmax=int
+     Minimum/maximum row/column length (nnzs) when pruning (only used with -pr/-pc).
+ 
+  -cmpi,-cmpv
+     Do not compare indices/values when comparing matrices in mode testeq. 
+     Defaults to compare both indices and values.
+ 
+  -fmtRead=string
+     What format is the dataset stored in: clu, csr, met, ijv, binr, binc, bijv, sbin.
+     See README for format definitions.
+     Default value is 0 (detect from extension).
+ 
+  -readZidx
+     Column ids start with 0 instead of 1. Pertains to clu, csr, met, and ijv formats only.
+ 
+  -readVals=int
+     Read values from file. Pertains to io mode and clu, csr, met, and ijv formats only.
+     Default value is 1.
+ 
+  -fmtWrite=string
+     What format should the output file be written in. See -fmtRead for values.
+     Default value is ijv.
+ 
+  -writeZidx
+     Column ids start with 0 instead of 1. Pertains to clu, csr, met, and ijv formats only.
+ 
+  -writeVals=int
+     Write values to file. Pertains to io mode and clu, csr, met, and ijv formats only.
+     Default value is 1.
+ 
+  -compactCols, -compactRows
+     Remove empty cols/rows from the matrix.
+ 
+  -sortCols
+     Sort column indices in matrix.
+ 
+  -stats
+     Display additional statistics for the matrix (applies to mode 'info' only).
+ 
+  -seed=int
+     Seed for the random number generator.
+     Default value is time(NULL).
+ 
+  -fldelta=int
+     Float delta used when testing equality of real numbers. (testeq mode only)
+     Default value is 1e-4.
+ 
+  -nthreads=int
+     The number of threads per block to be used for computing the neighbors.
+     Default value is 1.
+ 
+  -verb=int
+     Specifies the level of debugging information to be displayed:
+         0 = NONE, 1 = INFO
+     Default value is 0 (NONE).
+ 
+  -version
+     Prints version information.
+ 
+  -help, -h
+     Prints this message.
+
+
+
+All parameters are optional other than mode and input-file. Mode defines which algorithm will be used for the k-nearest neighbor graph construction. Other parameters can be specified in any order, either before or after the mode and files, as desired. Use the -fmtRead parameter to specify input-file format unless it has a clearly defined format extension, e.g. ".csr".  
+
+
+Input and output formats:
+----------
+
+Knng only accepts weighted data as input. While binary (non-weighted, without stored values) versions exist of the following formats, they cannot be used as input for this program.
+
+CSR (.csr), Cluto (.clu), Triplet CSR (.ijv), and Metis (.met) formats represent a sparse matrix row-wise in ascii files, as <column-id, value> pairs. Only the non-zero entries of the matrix are stored. A matrix row without any values should still exist in the file as an empty row. Column-ids start with 1. The Cluto and Metis formats contain an additional header row with metadata information. The Cluto metadata includes three integers, the number of rows (n), the number of columns (m), and the number of non-zero values (nnz). Metis metadata also includes three integers, the first is n, the second is nnz, and the third is simply 1, indicating the file contains values. The Triplet CSR format has nnz lines containing (i,j,val) triplets in the format "%d %d %f\n".
+
+Note that some output formats do not store matrix size (e.g. CSR, IJV). A direct comparison of neighbor matrices in different formats may report that matrix sizes differ if one format stores size and the other does not (e.g. if comparing Knng output matrices and no row has the last row as its neighbor). If using the "testeq" mode for testing matrix equality, you may see output such as, "Matrix stats differ: A[9846,9846,494932] != B[10000,9846,494932]". Ignore this output and focus on the "Differences" reported below this line. Alternatively, ensure both matrices are written in IJV format before comparing.
+
+Datasets stored in binary formats take up less space and usually load faster during execution. Knng accepts binary versions of the CSR format (.binr, .binc, .bijv), as well as the binary format used in Venu Satuluri's BayesLSH [6] package (.sbin), which is the same format as in Roberto J. Bayardo's implementation of AllPairs [3].
+
+   Binary CSR
+   ----------
+   The binary row-wise CSR (.binr) format stores two 4-byte integers (n, and nnz), followed by 3 arrays. The first is a 4-byte integer pointer array (ptr) of length n+1 containing pointers into the next two arrays, the indicators (ind) and values (val) arrays. These pointers specify where each row starts, s.t. row i's values are stored in the val array starting at index ptr[i] and ending at index ptr[i+1]. The indicators array stores column ids associated with those values. These column ids can similarly be found in the ind array between index ptr[i] and index ptr[i+1]. Needless to say, ptr[0] = 0 and ptr[n] = nnz. The ind array is a 4-byte integer array of length nnz, and the val array is a 4-byte float array of length nnz.
+   The binary column-wise CSR (.binc) is identical in structure to the binary row-wise CSR format, except it stores the matrix column-wise. The first integer is m, the number of columns, and the ind array stores row ids associated with a particular value in some column j.
+   The binary triplet CSR (.bijv) format stores four 4-byte integers (n, m, nnz, writevals). Writevals is 1 if values are included and 0 otherwise. If values exist, the file then contains nnz (i,j,val) triplets written as binary (int,int,float). Otherwise, it contains nnz (i,j) pairs written as binary (int,int).
+   
+   Venu Satuluri's binary format:
+   ----------
+   The (.sbin) format first stores n as a 4-byte integer, followed by a list of records stored as: "<record length> <columnID 1> <columnID 2> .. <columnID n> <weight 1> <weight 2> .. <weight n>". Column IDs start with 1 and are stored as 4-byte integers. Weights are stored as 4-byte floats.
+   
+All binary formats assume little-endian encoding.
+
+Knng accepts a verification file which allows computing accuracy statistics for the constructed k-NN graph. The verification file must be in CSR format (no header row) and must have results in each row sorted in decreasing order to similarity. The verification routines verify directly while reading the file, foregoing the potentially memory expensive task of readying the verification matrix into memory. The verification file should have results for at least k nearest neighbors. The "correct recall" value in the output of the program adjusts the recall for the case in which some other neighbor(s) with the same similarity as that of the most distant neighbor was(were) included in the result.
+
+Example invocations:
+----------
+
+For all examples, ensure appropriate paths for the program and/or datasets. You can find the example dataset WikiWords1k.clu and associated verification file WikiWords1k-cos-100.csr in the build/data subdirectory.
+
+cd build/data
+
+Find the k-NNG for the matrix stored in rcv1.clu. Scale the input by IDF and normalize each row before finding neighbors (input data is term frequencies). For each row in the matrix, find the closest 10 neighbors. Write the result to neighbors.csr. Use the results stored in rcv1-cos-100.csr to compute recall. When computing, choose 35 initial neighbors (alpha * k) and enhance the initial neighborhood 3 times in the approximate phase of the algorithm before finalizing the exact K-NNG.
+    ../knng l2knn WikiWords1k.clu neighbors.csr -v WikiWords1k-cos-100.csr -scale -norm 2 -alpha 3.5 -enh 3 -k 10
+    
+Use the -mu parameter instead of -alpha to achieve the same result.    
+    ../knng l2knn WikiWords1k.clu neighbors.csr -v WikiWords1k-cos-100.csr -scale -norm 2 -mu 35 -enh 3 -k 10
+    
+Choose initial neighbors randomly rather than using L2KnngApprox.
+    ../knng l2knn WikiWords1k.clu neighbors.csr -v WikiWords1k-cos-100.csr -scale -norm 2 -alpha 0 -enh 0 -k 10
+
+Break up the input into 2 blocks for the exact phase of the algorithm.
+    ../knng l2knn WikiWords1k.clu neighbors.csr -v WikiWords1k-cos-100.csr -scale -norm 2 -alpha 3.5 -enh 3 -k 10 -nbl 2
+    
+Execute the kIdxJoin method to find an exact k-NNG.
+    ../knng kij WikiWords1k.clu neighbors.csr -v WikiWords1k-cos-100.csr -scale -norm 2 -k 10
+
+Find an approximate k-NNG using Greedy Filtering, with an initial neighborhood of 300.
+    ../knng gf WikiWords1k.clu neighbors.csr -v WikiWords1k-cos-100.csr -scale -norm 2 -mu 300 -k 10
+
+Find an approximate k-NNG using L2KnngApprox, with an initial neighborhood of 300 and 3 iterations of neighborhood enhancement.
+    ../knng l2knn-a WikiWords1k.clu neighbors.csr -v WikiWords1k-cos-100.csr -scale -norm 2 -mu 300 -enh 3 -k 10
+
+
+References
+----------
+
+[1] David C. Anastasiu and George Karypis. L2Knng: Fast Exact K-Nearest Neighbor Graph Construction with L2-Norm Pruning. In 24th ACM International Conference on Information and Knowledge Management, CIKM '15, 2015.
+[2] David C. Anastasiu and George Karypis. L2ap: Fast cosine similarity search with prefix l-2 norm bounds. In 30th IEEE International Conference on Data Engineering, ICDE '14, 2014.
+[3] Roberto J. Bayardo, Yiming Ma, and Ramakrishnan Srikant. 2007. Scaling up all pairs similarity search. In Proceedings of the 16th international conference on World Wide Web (WWW '07). ACM, New York, NY, USA, 131-140.
+[4] Constantinos Dimopoulos, Sergey Nepomnyachiy, and Torsten Suel. Optimizing top-k document retrieval strategies for block-max indexes. In Proceedings of the Sixth ACM International Conference on Web Search and Data Mining, WSDM '13, pages 113-122, New York, NY, USA, 2013. ACM.
+[5] Youngki Park, Sungchan Park, Sang-goo Lee, and Woosung Jung. Greedy filtering: A scalable algorithm for k-nearest neighbor graph construction. In Database Systems for Advanced Applications, volume 8421 of Lecture Notes in Computer Science, pages 327-341. Springer-Verlag, 2014.
+[6] Venu Satuluri and Srinivasan Parthasarathy. 2012. Bayesian locality sensitive hashing for fast similarity search. Proc. VLDB Endow. 5, 5 (January 2012), 430-441.
+
+
+Acknowledgments:
+----------
+
+Our Maxscore and BMM codes are heavily influenced by implementations provided by Konstantinos Dimopoulos, but adapted to use cosine similarity. PForDelta compression provided by Jinru He (http://www.jinruhe.com/). Many CSR, I/O and memory management functions are ported from GKlib, by George Karypis.
+
+
+Citation:
+----------
+
+Please cite the following paper if you make use of this program or any of its components in your research. 
+
+David C. Anastasiu and George Karypis. L2Knng: Fast Exact K-Nearest Neighbor Graph Construction with L2-Norm Pruning. In 24th ACM International Conference on Information and Knowledge Management, CIKM '15, 2015.
+
+@inproceedings{anastasiu2015b,
+	author = {Anastasiu, David C. and Karypis, George},
+	title = {L2Knng: Fast Exact K-Nearest Neighbor Graph Construction with L2-Norm Pruning},
+	booktitle = {24th ACM International Conference on Information and Knowledge Management},
+	series = {CIKM '15},
+	year = {2015},
+	location = {Melbourne, Australia},
+	numpages = {10},
+	doi = {http://dx.doi.org/10.1145/2806416.2806534}
+}
+
+
+Copyright Notice and Usage Terms:
+----------
+
+See the file named LICENSE.
