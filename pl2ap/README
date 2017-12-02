@@ -1,0 +1,231 @@
+pl2ap - Compute the exact eps-Nearest Neighbor graph (similarity graph) for a set of sparse vectors using multiple cores. 
+
+Usage: pl2ap [options] mode input-file [output-file]
+ 
+ mode:
+  ij       IdxJoin - Full sparse dot-product with lesser id docs, output values at least t.
+  pij      A multi-threaded version of ij.
+  l2ap     L2-Norm AllPairs (L2AP)
+  pl2ap    A multi-threaded version of l2ap using cache blocking and masked hashing
+ 
+ utility modes:
+  info     Get information about the sparse matrix in input-file (output-file ignored).
+  eq       Test whether matrix in input-file is the same as that in output-file.
+           Differences will be printed out to stdout.
+  io       Transform sparse matrix in input file and write to output-file in
+           specified format. Scale and Norm parameters can also be invoked.
+  recall   Compute recall of a knng solution given true values.
+ 
+ <input-file> should be in CSR, CLUTO, IJV, AllPairs binary, or binary CSR format.
+ Specify stdout for the <output-file> to print results to stdout. In this case, -fmtWrite 
+ must be either IJV (default) or non-binary if -nim is invoked. If no <output-file> is
+ specified, the output will not be saved. 
+ 
+ Input is assumed to have unit-length rows when computing cosine similarity. Otherwise, use
+ the -norm and optionally the -scale parameters to pre-process input before similarity search.
+ 
+ Options
+ 
+  -t=float
+     Minimum similarity threshold for All-Pairs similarity search.
+     Default value is 0.9.
+ 
+  -ndrows=int
+     Number of rows for an index block.
+     Default value is 5000.
+ 
+  -nqrows=int
+     Number of rows for a query block.
+     Default value is 5000.
+ 
+  -ninnz=int
+     Number of non-zeros for an index block.
+     Default value is 100000.
+ 
+  -nthreads=int
+     The number of threads per block to be used for computing the neighbors.
+     Default value is 1.
+ 
+  -symout
+     Make output a symmetric graph rather than just the lower triangular portion of the graph.
+ 
+  -permcols=string
+     How to permute columns before computing knng (for kij and pkij modes): none, l2ap, or l2knn.
+     Default: none.
+ 
+  -scale
+     Scale the input data by IDF.
+ 
+  -norm=int
+     Normalize the matrix rows using the l1 (norm=1) or l2 (norm=2) norm.
+ 
+  -pr,-pc
+     Prune rows/cols from the input matrix that are too short/long.
+ 
+  -prmin=int,-prmax=int,-pcmin=int,-pcmax=int
+     Minimum/maximum row/column length (nnzs) when pruning (only used with -pr/-pc).
+ 
+  -cmpi,-cmpv
+     Do not compare indices/values when comparing matrices in mode eq. 
+     Defaults to compare both indices and values.
+ 
+  -fmtRead=string
+     What format is the dataset stored in: clu, csr, met, ijv, binr, binc, bijv, sbin.
+     See README for format definitions.
+     Default value is 0 (detect from extension).
+ 
+  -readZidx
+     Column ids start with 0 instead of 1. Pertains to clu, csr, met, and ijv formats only.
+ 
+  -readVals=int
+     Read values from file. Pertains to io mode and clu, csr, met, and ijv formats only.
+     Default value is 1.
+ 
+  -fmtWrite=string
+     What format should the output file be written in. See -fmtRead for values.
+     Default value is ijv.
+ 
+  -writeZidx
+     Column ids start with 0 instead of 1. Pertains to clu, csr, met, and ijv formats only.
+ 
+  -writeVals=int
+     Write values to file. Pertains to io mode and clu, csr, met, and ijv formats only.
+     Default value is 1.
+ 
+  -compactCols, -compactRows
+     Remove empty cols/rows from the matrix.
+ 
+  -sortCols
+     Sort column indices in matrix.
+ 
+  -stats
+     Display additional statistics for the matrix (applies to mode 'info' only).
+ 
+  -seed=int
+     Seed for the random number generator.
+     Default value is time(NULL).
+ 
+  -fldelta=int
+     Float delta used when testing equality of real numbers. (eq mode only)
+     Default value is 1e-4.
+ 
+  -verb=int
+     Specifies the level of debugging information to be displayed:
+         0 = NONE, 1 = INFO
+     Default value is 0 (NONE).
+ 
+  -version
+     Prints version information.
+ 
+  -help, -h
+     Prints this message.
+
+
+All parameters are optional other than mode and input-file. Mode defines which algorithm will be used for the nearest neighbor graph construction. Other parameters can be specified in any order, either before or after the mode and files, as desired. Use the -fmtRead parameter to specify input-file format unless it has a clearly defined format extension, e.g. ".csr".  
+
+
+Input and output formats:
+----------
+
+Pl2ap only accepts weighted data as input. While binary (non-weighted, without stored values) versions exist of the following formats, they cannot be used as input for this program. You can provide binary vectors as input by specifying a weight of 1 for each feature present in the vector.
+
+CSR (.csr), Cluto (.clu), Triplet CSR (.ijv), and Metis (.met) formats represent a sparse matrix row-wise in ascii files, as <column-id, value> pairs. Only the non-zero entries of the matrix are stored. A matrix row without any values should still exist in the file as an empty row. Column-ids start with 1. The Cluto and Metis formats contain an additional header row with metadata information. The Cluto metadata includes three integers, the number of rows (n), the number of columns (m), and the number of non-zero values (nnz). Metis metadata also includes three integers, the first is n, the second is nnz, and the third is simply 1, indicating the file contains values. The Triplet CSR format has nnz lines containing (i,j,val) triplets in the format "%d %d %f\n".
+
+Note that some output formats do not store matrix size (e.g. CSR, IJV). A direct comparison of neighbor matrices in different formats may report that matrix sizes differ if one format stores size and the other does not (e.g. if comparing Knng output matrices and no row has the last row as its neighbor). If using the "eq" mode for testing matrix equality, you may see output such as, "Matrix stats differ: A[9846,9846,494932] != B[10000,9846,494932]". Ignore this output and focus on the "Differences" reported below this line. Alternatively, ensure both matrices are written in IJV format before comparing.
+
+Datasets stored in binary formats take up less space and usually load faster during execution. Pl2ap accepts binary versions of the CSR format (.binr, .binc, .bijv), as well as the binary format used in Venu Satuluri's BayesLSH [6] package (.sbin), which is the same format as in Roberto J. Bayardo's implementation of AllPairs [3].
+
+   Binary CSR
+   ----------
+   The binary row-wise CSR (.binr) format stores two 4-byte integers (n, and nnz), followed by 3 arrays. The first is a 4-byte integer pointer array (ptr) of length n+1 containing pointers into the next two arrays, the indicators (ind) and values (val) arrays. These pointers specify where each row starts, s.t. row i's values are stored in the val array starting at index ptr[i] and ending at index ptr[i+1]. The indicators array stores column ids associated with those values. These column ids can similarly be found in the ind array between index ptr[i] and index ptr[i+1]. Needless to say, ptr[0] = 0 and ptr[n] = nnz. The ind array is a 4-byte integer array of length nnz, and the val array is a 4-byte float array of length nnz.
+   The binary column-wise CSR (.binc) is identical in structure to the binary row-wise CSR format, except it stores the matrix column-wise. The first integer is m, the number of columns, and the ind array stores row ids associated with a particular value in some column j.
+   The binary triplet CSR (.bijv) format stores four 4-byte integers (n, m, nnz, writevals). Writevals is 1 if values are included and 0 otherwise. If values exist, the file then contains nnz (i,j,val) triplets written as binary (int,int,float). Otherwise, it contains nnz (i,j) pairs written as binary (int,int).
+   
+   Venu Satuluri's binary format:
+   ----------
+   The (.sbin) format first stores n as a 4-byte integer, followed by a list of records stored as: "<record length> <columnID 1> <columnID 2> .. <columnID n> <weight 1> <weight 2> .. <weight n>". Column IDs start with 1 and are stored as 4-byte integers. Weights are stored as 4-byte floats.
+   
+All binary formats assume little-endian encoding.
+
+Example invocations:
+----------
+
+For all examples, ensure appropriate paths for the program and/or datasets. Adjust the -nthreads parameter to max the number of cores in your system.
+
+cd build/data
+
+Solve the APSS problem using the pL2AP algorithm for the datset in example.clu, stored in the Cluto format, and a Cosine similarity threshold of 0.75. Store the resulting similarity matrix as IJV format in the file output.ijv -norm 2 -scale .
+   ../pl2ap pl2ap example.clu output.ijv -norm 2 -scale  -t 0.5-nthreads 16
+
+Set the -innz parameter (zeta in the paper) to 1.5K
+   ../pl2ap pl2ap example.clu output.ijv -norm 2 -scale  -t 0.5 -nthreads 16 -ninnz 15000
+
+Get a symmetric output similarity matrix. By default, pL2ap creates only the lower-triangular portion of the matrix
+   ../pl2ap pl2ap example.clu output.ijv -norm 2 -scale  -t 0.5 -nthreads 16 -symout
+   
+Change the format of the sparse matrix example.sbin to IJV
+   ../pl2ap io example.sbin example.ijv
+   
+Change the format of the sparse matrix example.sbin to BIJV with an alternate extension.
+   ../pl2ap io example.sbin example.bmat -fmtWrite bijv
+   
+Test that two matrices contain the same values.
+   ../pl2ap eq output.ijv neighbors.sbin
+   
+Get information about a sparse matrix.
+   apss info neighbors.sbin
+
+References
+----------
+
+[1] David C. Anastasiu and George Karypis. L2AP: Fast Cosine Similarity Search With Prefix L-2 Norm Bounds. Proceedings of the 30th IEEE International Conference on Data Engineering (ICDE 2014).
+[2] David C. Anastasiu and George Karypis. Efficient Identification of Tanimoto Nearest Neighbors. Proceedings of the 3rd IEEE International Conference on Data Science and Advanced Analytics (DSAA 2016).
+[3] Roberto J. Bayardo, Yiming Ma, and Ramakrishnan Srikant. 2007. Scaling up all pairs similarity search. In Proceedings of the 16th international conference on World Wide Web (WWW '07). ACM, New York, NY, USA, 131-140.
+[4] Dongjoo Lee, Jaehui Park, Junho Shim, and Sang-goo Lee. 2010. An efficient similarity join algorithm with cosine similarity predicate. In Proceedings of the 21st international conference on Database and expert systems applications: Part II (DEXA'10), Pablo Garcia Bringas, Abdelkader Hameurlain, and Gerald Quirchmayr (Eds.). Springer-Verlag, Berlin, Heidelberg, 422-436
+[5] M. Kryszkiewicz. Bounds on lengths of real valued vectors similar with regard to the tanimoto similarity. Intelligent Information and Database Systems, ser. Lecture Notes in Computer Science, A. Selamat, N. Nguyen, and H. Haron, Eds. Springer Berlin Heidelberg, 2013, vol. 7802, pp. 445-454.
+[6] ----. Using non-zero dimensions for the cosine and tanimoto similarity search among real valued vectors. Fundamenta Informaticae, vol. 127, no. 1-4, pp. 307-323, 2013.
+[7] ----. Using non-zero dimensions and lengths of vectors for the tanimoto similarity search among real valued vectors. Intelligent Information and Database Systems. Springer International Publishing, 2014, pp. 173-182.
+[8] Venu Satuluri and Srinivasan Parthasarathy. 2012. Bayesian locality sensitive hashing for fast similarity search. Proc. VLDB Endow. 5, 5 (January 2012), 430-441.
+
+Acknowledgments:
+----------
+
+Our AllPairs code is heavily influenced by Venu Satuluri's [8] implementation in the BayesLSH package, which can be found at http://www.cse.ohio-state.edu/~satuluri/research.html. Many CSR utility functions are ported from GKlib.
+
+
+Citation:
+----------
+
+Please cite the following paper(s) if you make use of this program or any of its components in your research. 
+
+David C. Anastasiu & George Karypis. PL2AP: Fast Parallel Cosine Similarity Search. In Proceedings of the 5th Workshop on Irregular Applications: Architectures and Algorithms, in conjunction with SC'15 (IA3 2015), pages 1-8, ACM, 2015.
+
+@inproceedings{anastasiu-sc2015,
+   author    = {David C. Anastasiu and George Karypis},
+   title     = {PL2AP: Fast Parallel Cosine Similarity Search},
+   booktitle = {Proceedings of the 5th Workshop on Irregular Applications: Architectures and Algorithms, in conjunction with SC'15},
+   location  = {Austin, TX, USA},
+   series    = {IA3 2015},
+   year      = {2015},
+   pages     = {1-8},
+   publisher = {ACM},
+   address   = {New York, NY, USA},
+   location  = {Austin, TX, USA},
+}
+
+David C. Anastasiu and George Karypis. L2AP: Fast Cosine Similarity Search With Prefix L-2 Norm Bounds. Proceedings of the 30th IEEE International Conference on Data Engineering (ICDE 2014).
+
+@inproceedings{anastasiu2014,
+    author = {Anastasiu, David C. and Karypis, George},
+    title = {L2AP: Fast Cosine Similarity Search With Prefix L-2 Norm Bounds},
+    booktitle = {30th IEEE International Conference on Data Engineering},
+    series = {ICDE '14},
+    year = {2014},
+    location = {Chicago, IL, USA},
+    numpages = {12},
+}
+
+Copyright Notice and Usage Terms:
+----------
+
+See the file named LICENSE.
