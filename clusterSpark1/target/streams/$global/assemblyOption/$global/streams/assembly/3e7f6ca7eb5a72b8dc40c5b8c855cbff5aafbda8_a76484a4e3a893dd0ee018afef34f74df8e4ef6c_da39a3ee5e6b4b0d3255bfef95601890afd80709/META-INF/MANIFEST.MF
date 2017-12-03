@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.9.0
+Created-By: 1.6.0_41-b02-445-11M4107 (Apple Inc.)
+Main-Class: org.apache.tools.ant.launch.Launcher
+

@@ -1,0 +1,30 @@
+Manifest-Version: 1.0
+Export-Package: org.codehaus.jackson.io;uses:="org.codehaus.jackson.ut
+ il,org.codehaus.jackson";version="1.0.1",org.codehaus.jackson.util;ve
+ rsion="1.0.1",org.codehaus.jackson.annotate;version="1.0.1",org.codeh
+ aus.jackson;uses:="org.codehaus.jackson.io,org.codehaus.jackson.util,
+ org.codehaus.jackson.type";version="1.0.1",org.codehaus.jackson.type;
+ version="1.0.1"
+Private-Package: org.codehaus.jackson.impl,org.codehaus.jackson.sym
+Implementation-Title: Jackson JSON processor
+Implementation-Version: 1.0.1
+Built-By: tatu
+Specification-Vendor: http://www.ietf.org/rfc/rfc4627.txt
+Tool: Bnd-unknown version
+Bundle-Name: Jackson JSON processor
+Created-By: 1.6.0_10 (Sun Microsystems Inc.)
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Implementation-Vendor: http://fasterxml.com
+Bundle-Vendor: http://fasterxml.com
+Bundle-Version: 1.0.1
+Bnd-LastModified: 1244166878753
+Specification-Title: Json - JavaScript Object Notation
+Bundle-ManifestVersion: 2
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Specification-Version: 1.0
+Import-Package: org.codehaus.jackson;version="1.0.1",org.codehaus.jack
+ son.annotate;version="1.0.1",org.codehaus.jackson.io;version="1.0.1",
+ org.codehaus.jackson.type;version="1.0.1",org.codehaus.jackson.util;v
+ ersion="1.0.1"
+Bundle-SymbolicName: jackson-core-asl
+
