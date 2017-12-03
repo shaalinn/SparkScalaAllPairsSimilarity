@@ -25,11 +25,16 @@ object Main {
     // Set up a Spark streaming context  that runs locally using
     // all CPU cores and one-second batches of data
 
-    val conf = new SparkConf()
-    conf.set("spark.hadoop.validateOutputSpecs", "false")
-    conf.set("fs.default.name","file:///")
-    conf.setAppName("tempPipe")
-    val sc = new SparkContext(conf)
+    val conf1 = new SparkConf()
+    conf1.set("spark.hadoop.validateOutputSpecs", "false")
+    conf1.set("fs.default.name","file:///")
+    conf1.setAppName("tempPipe")
+    conf1.setMaster("local[*]")
+
+
+    val sc2 = new SparkContext(conf1)
+
+
 
     // Get rid of log spam (should be called after the context is set up)
     setupLogging()
@@ -42,7 +47,7 @@ object Main {
 
     writerHeader.close()
 
-    val partitions = 4
+    val partitions = args{0}.toInt
 
     val filename = STORAGE_COMMON_LOCATION+"/example.clu";
 
@@ -70,9 +75,18 @@ object Main {
 
     val storage = STORAGE_COMMON_LOCATION+"/texts"
 
-    val dataRDD = sc.textFile("file:///"+STORAGE_COMMON_LOCATION+"/finalexample.csr", partitions)
+    val dataRDD = sc2.textFile("file:///"+STORAGE_COMMON_LOCATION+"/finalexample.csr", partitions)
 
     dataRDD.saveAsTextFile("file:///"+storage)
+
+    sc2.stop()
+
+    val conf = new SparkConf()
+    conf.set("spark.hadoop.validateOutputSpecs", "false")
+    conf.set("fs.default.name","file:///")
+    conf.setAppName("tempPipe")
+
+    val sc = new SparkContext(conf)
 
     var myList = List[String]()
     if(partitions > 2){
@@ -110,8 +124,8 @@ object Main {
 
     val writerOutput = new PrintWriter(new FileOutputStream(OUTPUT_COMMON_LOCATION+"/Output.txt", false))
 
-    //pipedFiles.map(x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
-    pipedFiles.collect()
+    pipedFiles.collect.foreach( x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
+
 
     //pipedFiles.collect().foreach(x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
 
