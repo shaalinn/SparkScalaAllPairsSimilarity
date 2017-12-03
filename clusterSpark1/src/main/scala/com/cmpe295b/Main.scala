@@ -47,7 +47,7 @@ object Main {
 
     writerHeader.close()
 
-    val partitions = args{0}.toInt
+    val partitions = args{0}.toFloat
 
     val filename = STORAGE_COMMON_LOCATION+"/"+args{2};
 
