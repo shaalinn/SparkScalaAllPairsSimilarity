@@ -4,7 +4,7 @@
 		module="clusterspark1$sources_2.12"
 		revision="0.1"
 		status="integration"
-		publication="20171202214753"
+		publication="20171203014134"
 	/>
 	<configurations>
 		<conf name="compile" visibility="public" description=""/>

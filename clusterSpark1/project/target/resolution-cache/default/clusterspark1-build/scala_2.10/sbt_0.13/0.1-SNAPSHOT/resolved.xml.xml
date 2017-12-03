@@ -4,7 +4,7 @@
 		module="clusterspark1-build"
 		revision="0.1-SNAPSHOT"
 		status="integration"
-		publication="20171202222626"
+		publication="20171203014251"
 		e:sbtVersion="0.13" e:scalaVersion="2.10"
 	>
 		<description>

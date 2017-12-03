@@ -96,29 +96,28 @@ object Main {
       listpartition = 3
     }
 
-    println(myList)
+    //println(myList)
 
     val finalListPartition = listpartition / 2;
 
-    println(finalListPartition)
+    //println(finalListPartition)
 
     val filesRDD = sc.parallelize(myList, finalListPartition)
 
-    filesRDD.saveAsTextFile("file:///"+STORAGE_COMMON_LOCATION+"/texts")
+    //filesRDD.saveAsTextFile("file:///"+STORAGE_COMMON_LOCATION+"/texts")
 
     val pipedFiles = filesRDD.pipe(scriptPath)
 
     val writerOutput = new PrintWriter(new FileOutputStream(OUTPUT_COMMON_LOCATION+"/Output.txt", false))
 
     //pipedFiles.map(x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
-
     pipedFiles.collect()
 
-      //foreach(x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
+    //pipedFiles.collect().foreach(x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
 
     writerOutput.close()
 
-    FileUtils.deleteDirectory(new File(STORAGE_COMMON_LOCATION+"/texts"))
+    //FileUtils.deleteDirectory(new File(STORAGE_COMMON_LOCATION+"/texts"))
 
     /*val originalRDD = dataRDD.cache()
 
