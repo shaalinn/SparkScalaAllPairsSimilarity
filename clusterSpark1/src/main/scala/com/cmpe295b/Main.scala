@@ -39,7 +39,7 @@ object Main {
     // Get rid of log spam (should be called after the context is set up)
     setupLogging()
 
-    val thresholdV = args{1}.toInt
+    val thresholdV = args{1}.toFloat
 
     val writerHeader = new PrintWriter(new FileOutputStream(STORAGE_COMMON_LOCATION+"/cluHeaders.txt", false))
 
@@ -47,7 +47,7 @@ object Main {
 
     writerHeader.close()
 
-    val partitions = args{0}.toFloat
+    val partitions = args{0}.toInt
 
     val filename = STORAGE_COMMON_LOCATION+"/"+args{2};
 
