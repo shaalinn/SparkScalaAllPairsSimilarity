@@ -55,8 +55,8 @@ int main (int argc, char *argv[])
 	char inputname[512],opfile[512];
 	char ch;
 	int file_count=0;
-	sprintf(inputname,"/home/shalin/Downloads/pl2ap/generated/input%ld-%d",now.tv_usec,r);
-	sprintf(opfile,"/home/shalin/Downloads/pl2ap/generated/output%ld-%d.ijv",now.tv_usec,r);
+	sprintf(inputname,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/input%ld-%d",now.tv_usec,r);
+	sprintf(opfile,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/output%ld-%d.ijv",now.tv_usec,r);
 	input=fopen(inputname,"w+");
 	while(1){
 		char ch=fgetc(stdin);
@@ -73,8 +73,8 @@ int main (int argc, char *argv[])
 
 		
 	//printf("%ld %ld",now.tv_usec,r);
-	sprintf(fname[0],"/home/shalin/Downloads/pl2ap/generated/part-test%ld-%d.csr",now.tv_usec,r);
-	sprintf(fname[1],"/home/shalin/Downloads/pl2ap/generated/part-test%ld-%d(1).csr",now.tv_usec,r);
+	sprintf(fname[0],"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/part-test%ld-%d.csr",now.tv_usec,r);
+	sprintf(fname[1],"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/part-test%ld-%d(1).csr",now.tv_usec,r);
 	if(input == NULL)
     {
         printf("File Not Found\n");
@@ -169,7 +169,7 @@ int main (int argc, char *argv[])
     	fclose(fp);
     	fclose(output);
     }
-    fp=fopen("/home/shalin/Downloads/pl2ap/cluHeaders.txt","r");
+    fp=fopen("/home/hadoop/efs/storage_temp/cluHeaders.txt","r");
     if (fp == NULL){
         	printf("\nCan not read file %s",file);
         	exit(1);
