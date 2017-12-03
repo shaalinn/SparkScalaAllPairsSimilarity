@@ -39,7 +39,7 @@ object Main {
     // Get rid of log spam (should be called after the context is set up)
     setupLogging()
 
-    val thresholdV = 0.9
+    val thresholdV = args{1}.toInt
 
     val writerHeader = new PrintWriter(new FileOutputStream(STORAGE_COMMON_LOCATION+"/cluHeaders.txt", false))
 
@@ -49,7 +49,7 @@ object Main {
 
     val partitions = args{0}.toInt
 
-    val filename = STORAGE_COMMON_LOCATION+"/example.clu";
+    val filename = STORAGE_COMMON_LOCATION+"/"+args{2};
 
     val scriptPath = BINARY_COMMON_LOCATION+"/pl2ap/build/pl2ap";
 
