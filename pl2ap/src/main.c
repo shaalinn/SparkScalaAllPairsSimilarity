@@ -78,7 +78,7 @@ int main (int argc, char *argv[])
 	if(input == NULL)
     {
         printf("File Not Found\n");
-        exit(1);
+        exit(0);
     }
     else
     {
@@ -101,7 +101,7 @@ int main (int argc, char *argv[])
     int i,j;
     if(file_count<1){
     	printf("Invalid input file");
-    	exit(1);
+    	exit(0);
     }
     printf("file count = %d\n",file_count);
     char **filename=(char**)malloc(sizeof(char*)*file_count);
@@ -172,7 +172,7 @@ int main (int argc, char *argv[])
     fp=fopen("/home/hadoop/efs/storage_temp/cluHeaders.txt","r");
     if (fp == NULL){
         	printf("\nCan not read file %s",file);
-        	exit(1);
+        	exit(0);
     	}
     	//printf("\nArray %d: ",i);
     	j=1;
@@ -367,7 +367,7 @@ int main (int argc, char *argv[])
 	fp = fopen(opfile, "r");
     	if (fp == NULL){
         	printf("\nCan not read file %s",file);
- 		exit(1);
+ 		exit(0);
     	}
     	
     	
