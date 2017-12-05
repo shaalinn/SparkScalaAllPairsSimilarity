@@ -959,8 +959,9 @@ da_csr_t *da_csr_Read(const char *const filename,
         da_getfilestats(filename, &nrows, &nnz, NULL, NULL);
 
         if (readvals == 1 && nnz%2 == 1)
-            da_errexit("Error: The number of numbers (%zd %d) in the file %s is not even.\n",
-                    nnz, readvals, filename);
+	    nnz++;	
+            //da_errexit("Error: The number of numbers (%zd %d) in the file %s is not even.\n",
+                    //nnz, readvals, filename);
         if (readvals == 1)
             nnz = nnz/2;
         fpin = da_fopen(filename, "r", "da_csr_Read: fpin");
