@@ -1046,7 +1046,7 @@ da_csr_t *da_csr_Read(const char *const filename,
                 fval = strtof(head, &tail);
 #endif
                 if (tail == head)
-                    da_errexit("Value could not be found for column! Row:%zd, NNZ:%zd\n", i, k);
+                    //da_errexit("Value could not be found for column! Row:%zd, NNZ:%zd\n", i, k);
                 head = tail;
 
                 rowval[k] = fval;
