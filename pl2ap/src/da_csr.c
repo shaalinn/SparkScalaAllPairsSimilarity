@@ -961,7 +961,7 @@ da_csr_t *da_csr_Read(const char *const filename,
         if (readvals == 1 && nnz%2 == 1)	
             //da_errexit("Error: The number of numbers (%zd %d) in the file %s is not even.\n",
              //       nnz, readvals, filename);
-		exit(1);
+		exit(0);
         if (readvals == 1)
             nnz = nnz/2;
         fpin = da_fopen(filename, "r", "da_csr_Read: fpin");
@@ -1047,7 +1047,7 @@ da_csr_t *da_csr_Read(const char *const filename,
 #endif
                 if (tail == head)
                     //da_errexit("Value could not be found for column! Row:%zd, NNZ:%zd\n", i, k);
-			exit(1);
+			exit(0);
                 head = tail;
 
                 rowval[k] = fval;
