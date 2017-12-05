@@ -29,7 +29,7 @@ long lineCount(char *file){
         if (c == '\n') // Increment count if this character is newline
             count = count + 1;
     fclose(fp);
-    //printf("\ncount=%ld",count);
+    printf("\ncount=%ld",count);
     return count;
 }
 
@@ -103,7 +103,7 @@ int main (int argc, char *argv[])
     	printf("Invalid input file");
     	exit(1);
     }
-    //printf("file count = %d\n",file_count);
+    printf("file count = %d\n",file_count);
     char **filename=(char**)malloc(sizeof(char*)*file_count);
     long **index = (long**)malloc(sizeof(long*)*file_count);
     
@@ -186,6 +186,8 @@ int main (int argc, char *argv[])
 
     params = (params_t *) da_malloc (sizeof (params_t), "main: params");
     char *args[]={"./pl2ap","pijnn","-norm","2","-nthreads","1",fname[0],fname[1],opfile,"-eps",threshold};
+
+    printf("before command line");
     cmdline_parse (params, 11, args);
 
     if (params->verbosity > 0) {
