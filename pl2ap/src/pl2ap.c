@@ -114,7 +114,8 @@ pl2apFindNeighbors (params_t * params)
 	  k++;
 	}
       if (i >= ndblks)
-	da_errexit ("-ninnz parameter too small. Try a larger value.");
+	//da_errexit ("-ninnz parameter too small. Try a larger value.");
+	exit(0);
       blkptr[i + 1] = k;
     }
   ndblks = i;

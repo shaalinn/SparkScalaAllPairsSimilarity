@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.spark._
 
 import scala.io.Source
+import scala.util.Try
 
 object Main {
   /** Makes sure only ERROR messages get logged to avoid log spam. */
@@ -47,11 +48,15 @@ object Main {
 
     writerHeader.close()
 
+    //TODO dynamic partitions in next two lines
     val partitions = args{0}.toInt
+
+    println("partitions are "+partitions)
 
     val filename = STORAGE_COMMON_LOCATION+"/"+args{2};
 
     val scriptPath = BINARY_COMMON_LOCATION+"/pl2ap/build/pl2ap";
+    val scriptPathSingle = BINARY_COMMON_LOCATION+"/pl2apPL2AP/build/pl2ap";
 
     var i = 0
     var p = 1
@@ -77,6 +82,12 @@ object Main {
 
     val dataRDD = sc2.textFile("file:///"+STORAGE_COMMON_LOCATION+"/finalexample.csr", partitions)
 
+    //val dataRDD = dataRDD1.repartition(partitions)
+
+    println(dataRDD.partitions.length)
+
+    val realParitions = dataRDD.partitions.length
+
     dataRDD.saveAsTextFile("file:///"+storage)
 
     sc2.stop()
@@ -86,15 +97,17 @@ object Main {
     conf.set("fs.default.name","file:///")
     conf.setAppName("tempPipe")
 
+
     val sc = new SparkContext(conf)
 
+    var k = 0;
+    var j = 0;
     var myList = List[String]()
-    if(partitions > 2){
-      var k = 0
-      while(k < partitions){
-        var j = k+1
-        while (j < partitions){
-          myList = STORAGE_COMMON_LOCATION+"/texts/part-0000"+k+" "+STORAGE_COMMON_LOCATION+"/texts/part-0000"+j :: myList
+    if(realParitions > 2){
+      while(k < realParitions){
+        j = k+1
+        while (j < realParitions){
+          myList = STORAGE_COMMON_LOCATION+"/texts/part-"+f"$k%05d"+" "+STORAGE_COMMON_LOCATION+"/texts/part-"+f"$j%05d" :: myList
           j = j + 1
         }
         k = k + 1
@@ -103,33 +116,79 @@ object Main {
       myList = STORAGE_COMMON_LOCATION+"/texts/part-00000 "+STORAGE_COMMON_LOCATION+"/texts/part-00001" :: myList
     }
 
+    println("size of myList is "+ myList.length)
+
     var listpartition = 0
-    if(partitions > 2){
-      listpartition = partitions*partitions - partitions;
+    if(realParitions > 2){
+      listpartition = realParitions*realParitions - realParitions;
     }else{
       listpartition = 3
     }
 
-    //println(myList)
+    if(realParitions>1){
+      var a = 0;
+      while (a < realParitions){
+        myList = STORAGE_COMMON_LOCATION+"/texts/part-"+f"$a%05d"+" "+STORAGE_COMMON_LOCATION+"/texts/part-"+f"$a%05d" :: myList
+        a = a + 1
+      }
+    }
+    
+    println("my list "+myList)
+
+    println("final list partitions "+listpartition)
 
     val finalListPartition = listpartition / 2;
 
-    //println(finalListPartition)
+    val finalListPartition1 = finalListPartition + realParitions
 
-    val filesRDD = sc.parallelize(myList, finalListPartition)
+    println("final list partitions "+finalListPartition)
 
+    val filesRDD = sc.parallelize(myList, finalListPartition1)
+
+    println("partition made for list "+ filesRDD.partitions.length)
+
+    //filesRDD.saveAsTextFile("s3n://sparkcluster-cmpe295b/")
     //filesRDD.saveAsTextFile("file:///"+STORAGE_COMMON_LOCATION+"/texts")
 
     val pipedFiles = filesRDD.pipe(scriptPath)
 
-    val writerOutput = new PrintWriter(new FileOutputStream(OUTPUT_COMMON_LOCATION+"/Output.txt", false))
 
-    pipedFiles.collect.foreach( x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
+    //fixme single file pl2ap
+    var q = 0
+    var myListSingle = List[String]()
+    while(q < realParitions-1){
+      myListSingle = STORAGE_COMMON_LOCATION+"/texts/part-"+f"$q%05d" :: myListSingle
+      q = q + 1
+    }
+
+    println("combination "+ q)
+    println("size of myListSingle is "+ myListSingle.length)
+
+    println("myListSingle is "+ myListSingle)
+
+    val singleFilesRDD = sc.parallelize(myListSingle, realParitions)
+
+    val singleFilesRDD1 = singleFilesRDD.repartition(realParitions)
+
+    val singlePipedFiles = singleFilesRDD1.pipe(scriptPathSingle)
+
+    //val finalResultRDD = pipedFiles.union(singlePipedFiles)
+
+    //val writerOutput = new PrintWriter(new FileOutputStream(OUTPUT_COMMON_LOCATION+"/Output.txt", false))
+
+    //pipedFiles.collect.foreach( x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
+
+    //pipedFiles.coalesce(1, true).saveAsTextFile("s3n://sparkcluster-cmpe295b/")
+
+    pipedFiles.saveAsTextFile("s3n://sparkcluster-cmpe295b/")
+     //finalResultRDD.coalesce(realParitions, true).saveAsTextFile("s3n://sparkcluster-cmpe295b/")
+
+
 
 
     //pipedFiles.collect().foreach(x => if(x.charAt(0)>='0' && x.charAt(0)<='9') writerOutput.write(x+"\n"))
 
-    writerOutput.close()
+    //writerOutput.close()
 
     //FileUtils.deleteDirectory(new File(STORAGE_COMMON_LOCATION+"/texts"))
 
