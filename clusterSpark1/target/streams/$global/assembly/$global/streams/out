@@ -6,7 +6,7 @@
 [0m[[33mwarn[0m] [0mMerging 'META-INF/maven/commons-io/commons-io/pom.properties' with strategy 'discard'[0m
 [0m[[33mwarn[0m] [0mMerging 'META-INF/maven/commons-io/commons-io/pom.xml' with strategy 'discard'[0m
 [0m[[33mwarn[0m] [0mStrategy 'discard' was applied to 3 files[0m
-[0m[[0minfo[0m] [0mSHA-1: 4b6c590697d3b04c8371f2033ef4b66a2595b791[0m
+[0m[[0minfo[0m] [0mSHA-1: 9d612ba08c030c66c23ca04a0c86a9a598422ffb[0m
 [0m[[0minfo[0m] [0mPackaging /home/shalin/IdeaProjects/clusterSpark1/target/scala-2.12/sparkcluster.jar ...[0m
 [0m[[0mdebug[0m] [0mInput file mappings:[0m
 [0m[[0mdebug[0m] [0m	META-INF/LICENSE_commons-io-2.4.txt[0m

@@ -132,7 +132,7 @@ object Main {
         a = a + 1
       }
     }
-    
+
     println("my list "+myList)
 
     println("final list partitions "+listpartition)
@@ -168,9 +168,9 @@ object Main {
 
     val singleFilesRDD = sc.parallelize(myListSingle, realParitions)
 
-    val singleFilesRDD1 = singleFilesRDD.repartition(realParitions)
+    //val singleFilesRDD1 = singleFilesRDD.repartition(realParitions)
 
-    val singlePipedFiles = singleFilesRDD1.pipe(scriptPathSingle)
+    //val singlePipedFiles = singleFilesRDD1.pipe(scriptPathSingle)
 
     //val finalResultRDD = pipedFiles.union(singlePipedFiles)
 
