@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name=".settings">
+      </df>
+      <df name="build">
+        <df name="data">
+        </df>
+      </df>
+      <df name="generated">
+      </df>
+      <df name="src">
+        <in>basetypes.h</in>
+        <in>cmdline.c</in>
+        <in>da_csr.c</in>
+        <in>da_fs.c</in>
+        <in>da_getopt.c</in>
+        <in>da_getopt.h</in>
+        <in>da_io.c</in>
+        <in>da_mcore.c</in>
+        <in>da_mkblas.h</in>
+        <in>da_mkmemory.h</in>
+        <in>da_mkpqueue.h</in>
+        <in>da_mkrandom.h</in>
+        <in>da_mksort.h</in>
+        <in>da_random.c</in>
+        <in>da_string.c</in>
+        <in>defs.h</in>
+        <in>idxjoin.c</in>
+        <in>includes.h</in>
+        <in>l2ap.c</in>
+        <in>macros.h</in>
+        <in>main.c</in>
+        <in>memory.c</in>
+        <in>pidxjoin.c</in>
+        <in>pijnn.c</in>
+        <in>pl2ap.c</in>
+        <in>pl2nn.c</in>
+        <in>pqueue.c</in>
+        <in>proto.h</in>
+        <in>select.c</in>
+        <in>sort.c</in>
+        <in>struct.h</in>
+        <in>util.c</in>
+      </df>
+    </df>
+  </logicalFolder>
+  <projectmakefile></projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <platform>2</platform>
+      </toolsSet>
+      <compile>
+        <compiledirpicklist>
+          <compiledirpicklistitem>.</compiledirpicklistitem>
+          <compiledirpicklistitem>${AUTO_FOLDER}</compiledirpicklistitem>
+        </compiledirpicklist>
+        <compiledir>${AUTO_FOLDER}</compiledir>
+        <compilecommandpicklist>
+          <compilecommandpicklistitem>${MAKE} ${ITEM_NAME}.o</compilecommandpicklistitem>
+          <compilecommandpicklistitem>${AUTO_COMPILE}</compilecommandpicklistitem>
+        </compilecommandpicklist>
+        <compilecommand>${AUTO_COMPILE}</compilecommand>
+      </compile>
+      <dbx_gdbdebugger version="1">
+        <gdb_pathmaps>
+        </gdb_pathmaps>
+        <gdb_interceptlist>
+          <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
+        </gdb_interceptlist>
+        <gdb_options>
+          <DebugOptions>
+          </DebugOptions>
+        </gdb_options>
+        <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
+      </dbx_gdbdebugger>
+      <nativedebugger version="1">
+        <engine>gdb</engine>
+      </nativedebugger>
+      <runprofile version="9">
+        <runcommandpicklist>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>./pl2ap</runcommandpicklistitem>
+        </runcommandpicklist>
+        <runcommand>./pl2ap</runcommand>
+        <rundir>.</rundir>
+        <buildfirst>false</buildfirst>
+        <terminal-type>0</terminal-type>
+        <remove-instrumentation>0</remove-instrumentation>
+        <environment>
+        </environment>
+      </runprofile>
+    </conf>
+  </confs>
+</configurationDescriptor>
