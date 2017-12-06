@@ -68,8 +68,8 @@ double timer;
 	char ch;
 	int file_count=0;
 	///home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/
-	sprintf(inputname,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/pl2apPL2AP/generated/input%ld-%d",now.tv_usec,r);
-	sprintf(opfile,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/pl2apPL2AP/generated/output%ld-%d.ijv",now.tv_usec+(r%10000),r);
+	sprintf(inputname,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2apPL2AP/generated/input%ld-%d",now.tv_usec,r);
+	sprintf(opfile,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2apPL2AP/generated/output%ld-%d.ijv",now.tv_usec+(r%10000),r);
 	input=fopen(inputname,"w+");
 	while(1){
 		char ch=fgetc(stdin);
@@ -87,7 +87,7 @@ double timer;
 		
 	//printf("%ld %ld",now.tv_usec,r);
 	int charcount=0;
-	sprintf(fname[0],"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/pl2apPL2AP/generated/part-test%ld-%d.csr",now.tv_usec+(r%1000),r);
+	sprintf(fname[0],"/home/hadoop/SparkScalaAllPairsSimilarity/pl2apPL2AP/generated/part-test%ld-%d.csr",now.tv_usec+(r%1000),r);
 	if(input == NULL)
     {
         printf("File Not Found\n");
