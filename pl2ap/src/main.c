@@ -55,7 +55,9 @@ int main (int argc, char *argv[])
 	char inputname[512],opfile[512];
 	char ch;
 	int file_count=0;
+	gettimeofday(&now, NULL);
 	sprintf(inputname,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/input%ld-%d",now.tv_usec,r);
+	gettimeofday(&now, NULL);
 	sprintf(opfile,"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/output%ld-%d.ijv",now.tv_usec,r);
 	input=fopen(inputname,"w+");
 	while(1){
@@ -73,7 +75,9 @@ int main (int argc, char *argv[])
 
 		
 	//printf("%ld %ld",now.tv_usec,r);
+	gettimeofday(&now, NULL);
 	sprintf(fname[0],"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/part-test%ld-%d.csr",now.tv_usec,r);
+	gettimeofday(&now, NULL);	
 	sprintf(fname[1],"/home/hadoop/SparkScalaAllPairsSimilarity/pl2ap/generated/part-test%ld-%d(1).csr",now.tv_usec,r);
 	if(input == NULL)
     {
