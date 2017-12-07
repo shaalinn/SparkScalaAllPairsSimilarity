@@ -154,19 +154,19 @@ object Main {
 
 
     //fixme single file pl2ap
-    var q = 0
+   /* var q = 0
     var myListSingle = List[String]()
     while(q < realParitions-1){
       myListSingle = STORAGE_COMMON_LOCATION+"/texts/part-"+f"$q%05d" :: myListSingle
       q = q + 1
-    }
+    }*/
 
-    println("combination "+ q)
-    println("size of myListSingle is "+ myListSingle.length)
+   // println("combination "+ q)
+    //println("size of myListSingle is "+ myListSingle.length)
 
-    println("myListSingle is "+ myListSingle)
+    //println("myListSingle is "+ myListSingle)
 
-    val singleFilesRDD = sc.parallelize(myListSingle, realParitions)
+    //val singleFilesRDD = sc.parallelize(myListSingle, realParitions)
 
     //val singleFilesRDD1 = singleFilesRDD.repartition(realParitions)
 
@@ -180,7 +180,9 @@ object Main {
 
     //pipedFiles.coalesce(1, true).saveAsTextFile("s3n://sparkcluster-cmpe295b/")
 
-    pipedFiles.saveAsTextFile("s3n://sparkcluster-cmpe295b/")
+    //val finalRDD = pipedFiles.repartition(partitions)
+
+    pipedFiles.saveAsTextFile("s3n://shalinclustertestspark/")
      //finalResultRDD.coalesce(realParitions, true).saveAsTextFile("s3n://sparkcluster-cmpe295b/")
 
 

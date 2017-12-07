@@ -40,8 +40,8 @@
       <file leaf-file-name="Main.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/com/cmpe295b/Main.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="436">
-              <caret line="170" column="6" lean-forward="false" selection-start-line="170" selection-start-column="6" selection-end-line="170" selection-end-column="6" />
+            <state relative-caret-position="922">
+              <caret line="188" column="0" lean-forward="true" selection-start-line="188" selection-start-column="0" selection-end-line="188" selection-end-column="0" />
               <folding>
                 <element signature="e#21#73#0" expanded="true" />
               </folding>
@@ -324,12 +324,12 @@
       <workItem from="1512268837978" duration="19545000" />
       <workItem from="1512335815898" duration="14671000" />
       <workItem from="1512436159398" duration="6404000" />
-      <workItem from="1512498765970" duration="13698000" />
+      <workItem from="1512498765970" duration="19729000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="54318000" />
+    <option name="totallyTimeSpent" value="60349000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="65" y="24" width="1857" height="1212" extended-state="6" />
@@ -472,8 +472,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/cmpe295b/Main.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="436">
-          <caret line="170" column="6" lean-forward="false" selection-start-line="170" selection-start-column="6" selection-end-line="170" selection-end-column="6" />
+        <state relative-caret-position="922">
+          <caret line="188" column="0" lean-forward="true" selection-start-line="188" selection-start-column="0" selection-end-line="188" selection-end-column="0" />
           <folding>
             <element signature="e#21#73#0" expanded="true" />
           </folding>
